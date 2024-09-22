@@ -40,3 +40,10 @@ factorial::Int -> Int --- Declaring that function takes integer value and return
 factorial 0 = 1 --- Declaring that is n is 0 then it means it returns 1
 factorial n = n * factorial (n-1)  --- process of calculating factorial
 ```
+
+#### Immutable variables
+In functional programming variables are immutable - throughout the program runtime values of variables will not be changed and they remain constant.
+```
+x = x + 1
+```
+In other programming languages this expression changes the value of <b>x</b>. But in functional programming languages it remains as previous defined value.

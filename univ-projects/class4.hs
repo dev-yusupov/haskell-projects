@@ -57,14 +57,15 @@ f5 :: Int -> Int -> [Int]
 f5 x n = [n^i | i <- [1..x]]
 
 
-main = print (f5 5 2)  -- [4,8,16,32]
+-- main = print (f5 5 2)  -- [4,8,16,32]
 
 
 
 -- 6 ----------------------------------------------------------------------
 -- Replicate n>0 times a list.
 
---f6 :: Int -> [Int] -> [[Int]]
+f6 :: Int -> [Int] -> [[Int]]
+f6 = replicate
 
 -- main = print (f6 3 [1..5]) -- [[1,2,3,4,5],[1,2,3,4,5],[1,2,3,4,5]]
 
@@ -73,7 +74,12 @@ main = print (f5 5 2)  -- [4,8,16,32]
 -- 7 ----------------------------------------------------------------------
 -- Insert 0 at the middle of each sublist.
 
---f7 :: [[Int]] -> [[Int]]
+f7 :: [[Int]] -> [[Int]]
+f7 [] = []
+f7 (x:xs) = modifiedList : f7 xs
+    where 
+        (as, bs) = splitAt (length x `div` 2) x 
+        modifiedList = as ++ [0] ++ bs
 
 -- main = print (f7 [[1..10], [1..11], [], [1], [1,2]]) 
 -- [[1,2,3,4,5,0,6,7,8,9,10],[1,2,3,4,5,0,6,7,8,9,10,11],[0],[0,1],[1,0,2]]
@@ -83,7 +89,13 @@ main = print (f5 5 2)  -- [4,8,16,32]
 -- 8 ----------------------------------------------------------------------
 -- Extract the elements smaller then the head element of a list. Assume that the list is not empty.
 
---f8 :: [Int] -> [Int]
+f8 :: [Int] -> [Int]
+f8 [] = []
+f8 (x:xs) = filter (< x) xs
+
+f8alternative :: [Int] -> [Int]
+f8alternative [] = []
+f8alternative (x:xs) = [y | y <- xs, x>y]
 
 -- main = print (f8 [5,1,2,3,4,5,3,6,7,1,8]) -- [1,2,3,4,3,1]
 
@@ -92,7 +104,9 @@ main = print (f5 5 2)  -- [4,8,16,32]
 -- 9 ----------------------------------------------------------------------
 -- Eliminate in a list, the sublists that are longer or equal to 10.
 
---f9 :: [[Int]] -> [[Int]]
+f9 :: [[Int]] -> [[Int]]
+f9 [] = []
+f9 xs = [y | y <- xs , length y < 10]
 
 -- main = print (f9 [[1..10], [1..11], [1..5], []]) -- [[1,2,3,4,5],[]]
 
@@ -101,7 +115,9 @@ main = print (f5 5 2)  -- [4,8,16,32]
 -- 10 ----------------------------------------------------------------------
 -- Compute the greatest common divisor in a recursive function.
 
---f10 :: Int -> Int -> Int
+f10 :: Int -> Int -> Int
+f10 a 0 = a
+f10 a b = f10 b (a `mod` b)
 
 -- main = print (f10 24 12) -- 12
 
@@ -110,7 +126,10 @@ main = print (f5 5 2)  -- [4,8,16,32]
 -- 11 ----------------------------------------------------------------------
 -- Given a list of Ints, remove the element at the given position.
 
---remElemAt :: Int -> [Int] -> [Int]
+remElemAt :: Int -> [Int] -> [Int]
+remElemAt k xs = as ++ bs
+    where
+        (as, _:bs) = splitAt k xs
 
 -- main = print (remElemAt 6 [1..7]) -- [1,2,3,4,5,6]
 -- main = print (remElemAt 2 [1..7]) -- [1,2,4,5,6,7]
@@ -121,9 +140,10 @@ main = print (f5 5 2)  -- [4,8,16,32]
 -- 12 ----------------------------------------------------------------------
 -- Switch places the first and last element of a 3 element list.
 
---reorder :: [String] -> [String]
+reorder :: [String] -> [String]
+reorder (x:xs) = [last xs] ++ init xs ++ [x]
 
--- main = print (reorder ["tail", "body", "head"])              -- ["head", "body", "tail"]
+main = print (reorder ["tail", "body", "head"])              -- ["head", "body", "tail"]
 -- main = print (reorder ["tails", "body", "heads"] )           -- ["heads", "body", "tails"]
 -- main = print (reorder ["ground", "rainbow", "sky"])          -- ["sky", "rainbow", "ground"]
 

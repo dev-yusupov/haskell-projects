@@ -1,4 +1,5 @@
-import Data.Char (toUpper)
+import Data.Char (toUpper, toLower, isAlpha)
+import Data.List (maximumBy)
 {-
     1.
     You are given a list of tuples where each tuple represents a person’s age and their income (in euros).
@@ -40,9 +41,14 @@ processPeople ((age, income):xs)
 -}
 
 dayWithMaxDifference :: [(Int, Int)] -> Int
-dayWithMaxDifference ((highest, lowest):xs) = 
+dayWithMaxDifference [] = -1
+dayWithMaxDifference temps = snd $ maximumBy compareDiffs indexedDiffs
+    where
+        indexedDiffs = zip(map (\(high, low) -> high - low) temps) [0..]
 
-main = print(dayWithMaxDifference [(30, 20), (35, 25), (40, 10), (33, 30)]) -- 2
+        compareDiffs (diff1, _) (diff2, _) = compare diff1 diff2
+
+-- main = print(dayWithMaxDifference [(30, 20), (35, 25), (40, 10), (33, 30)]) -- 2
 -- main = print(dayWithMaxDifference [(17, 9), (16, 5), (18, 9)]) -- 1 
 -- main = print(dayWithMaxDifference [(5, -5), (10, 0), (-10, -20)]) -- 0
 -- main = print(dayWithMaxDifference []) -- -1
@@ -56,7 +62,10 @@ main = print(dayWithMaxDifference [(30, 20), (35, 25), (40, 10), (33, 30)]) -- 2
     If the number is prime, return True, otherwise return False.
     If the number is less than 2 immediately return False.
 -}
---isPrime :: Int -> Bool
+isPrime :: Int -> Bool
+isPrime number
+    | number < 2 = False
+    | otherwise = null ([x | x <- [2..number `div` 2], number `mod` x == 0])
 
 -- main = print (isPrime 2) -- True
 -- main = print (isPrime 7) -- True
@@ -70,7 +79,11 @@ main = print(dayWithMaxDifference [(30, 20), (35, 25), (40, 10), (33, 30)]) -- 2
     capitalizeWords "hello world" -- Output: "Hello World"
 -}
 
---capitalizeWords :: String -> String
+capitalizeWords :: String -> String
+capitalizeWords str = unwords $ map capitalize (words str)
+    where
+        capitalize [] = []
+        capitalize (x:xs) = toUpper x : map toLower xs
 
 
 -- main = print (capitalizeWords "hello world") -- "Hello World"
@@ -90,10 +103,23 @@ Hint:
 You might want to use a list of vowels to check for vowels, make sure to cover bot lowercase and uppercase
 -}
 
---hw7 :: [String] -> [(Int,Int)]
+isVowel :: Char -> Bool
+isVowel c = toLower c `elem` "aeiou"
+
+countVowelConsonant :: String -> (Int, Int)
+countVowelConsonant word = (vowelCount, consonantCount)
+    where
+        letters = filter isAlpha word
+
+        vowelCount = length $ filter isVowel letters
+        consonantCount = length letters - vowelCount
+
+hw7 :: [String] -> [(Int,Int)]
+hw7 [] = []
+hw7 words = map countVowelConsonant words
 
 
---main = print (hw7 ["Harry", "ooo", "pc", "Web"]) -- [(1,4),(3,0),(0,2),(1,2)]
+main = print (hw7 ["Harry", "ooo", "pc", "Web"]) -- [(1,4),(3,0),(0,2),(1,2)]
 --main = print (hw7 []) --[]
 --main = print (hw7 ["FFAABB", "Clean"]) --[(2,4),(2,3)]
 --main = print (hw7 ["12345", "he110", "W0r1D"]) --[(0,0),(1,1),(0,3)]

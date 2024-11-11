@@ -160,7 +160,7 @@ passedStudents xs x = map fst . filter (\(_, points) -> sum (map floor points) >
 
 
 eliminate :: [Int] -> [Int]
-eliminate xs 
+eliminate xs
     | length xs == 1 = xs
     | otherwise = eliminate [num | (num, inx) <- zip xs [0..], inx `mod` 2 == 1]
 
@@ -208,8 +208,13 @@ del3 xs = [num | (num, inx) <- zip xs [0..], inx `mod` 3 /= 2]
              [0,1,1,2,3,5],[0,1,1,2,3,5,8],[0,1,1,2,3,5,8],[0,1,1,2,3,5,8]]
 -}
 
+fibs :: [Int]
+fibs = 0 : 1 : zipWith (+) fibs (drop 1 fibs)
 
--- fibList :: [Int] -> [[Int]]
+
+fibList :: [Int] -> [[Int]]
+fibList xs = map (\n -> take n (takeWhile (<n) fibs)) xs
+
 
 
 -- main = print (fibList [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -239,7 +244,8 @@ del3 xs = [num | (num, inx) <- zip xs [0..], inx `mod` 3 /= 2]
 -}
 
 
--- carrylessDigitAddition :: [Int] -> [Int] -> [Int]
+carrylessDigitAddition :: [Int] -> [Int] -> [Int]
+carrylessDigitAddition xs ys = zipWith (\x y -> (x + y) `mod` 10 ) xs ys
 
 
 
@@ -267,10 +273,16 @@ del3 xs = [num | (num, inx) <- zip xs [0..], inx `mod` 3 /= 2]
     list of tuples of the same length as the shorter list.
 -}
 
+gcdivisor :: Int -> Int -> Int
+gcdivisor num1 0 = abs num1 
+gcdivisor num1 num2 = gcdivisor num2 (num1 `mod` num2)
+
+lcmultiple :: Int -> Int -> Int
+lcmultiple a b = a * b `div` gcd a b
 
 
--- zipWithLCM :: [Int] -> [Int] -> [(Int, Int, Int)]
-
+zipWithLCM :: [Int] -> [Int] -> [(Int, Int, Int)]
+zipWithLCM xs ys = zipWith (\x y -> (x, y, lcmultiple x y)) xs ys
 
 
 
@@ -299,14 +311,20 @@ del3 xs = [num | (num, inx) <- zip xs [0..], inx `mod` 3 /= 2]
 
 
 
--- funNum :: Int -> Int
+funNum :: Int -> Int
+funNum n = read $ second ++ first
 
+    where
+        digits = show n
+        half = length digits `div` 2
+
+        (first, second) = splitAt half digits
 
 
 
 -- main = print (funNum 0)      -- 0
---main = print (funNum 1234)   -- 3412
---main = print (funNum 12345)  -- 34512
+-- main = print (funNum 1234)   -- 3412
+-- main = print (funNum 12345)  -- 34512
 -- main = print (funNum 123456) -- 456123
 
 
@@ -321,12 +339,19 @@ del3 xs = [num | (num, inx) <- zip xs [0..], inx `mod` 3 /= 2]
 
 
 
--- foldIfTrue :: (Int -> Bool) -> String -> [Int] -> Int
+foldIfTrue :: (Int -> Bool) -> String -> [Int] -> Int
+foldIfTrue predicate operation numbers = 
+    let filteredList = filter predicate numbers
+
+    in case operation of
+        "max" -> maximum filteredList
+        "min" -> minimum filteredList
+        "*" -> product filteredList
+        "+" -> sum filteredList
 
 
-
---main  = print(foldIfTrue ((>) 5) "max" [6, 1, 2, 3]) -- 6
---main  = print(foldIfTrue ((>) 5) "min" [6, 1, 2, 3]) -- 1
+-- main  = print(foldIfTrue ((>) 5) "max" [6, 1, 2, 3]) -- 6
+-- main  = print(foldIfTrue ((>) 5) "min" [6, 1, 2, 3]) -- 1
 -- main = print(foldIfTrue even "+" [6, 1, 2, 3, 233, 287]) -- 8
 -- main = print(foldIfTrue even "*" [6, 1, 2, 3, 233, 287]) -- 12
 
@@ -352,7 +377,10 @@ del3 xs = [num | (num, inx) <- zip xs [0..], inx `mod` 3 /= 2]
 
 
 -- 1. Calculate average salary
--- averageSalary :: [(String, Int, Int)] -> Double
+averageSalary :: [(String, Int, Int)] -> Double
+averageSalary xs = 
+    let totalSalary = foldl (\total (_, _, salary) -> total + salary) 0 xs
+    in fromIntegral totalSalary / fromIntegral (length xs)
 
 
 -- main = print (averageSalary [("John", 23, 200), ("Bob", 60, 700), ("Anna", 38, 427), ("Joe", 36, 289), ("Doe", 22, 384), ("Marie", 55, 573), ("Lucy", 37, 400)])  
@@ -366,11 +394,11 @@ del3 xs = [num | (num, inx) <- zip xs [0..], inx `mod` 3 /= 2]
 -- 87.6
 
 -- 3. Get names of employees older than 35 and earning more than 300
--- namesOlder35 :: [(String, Int, Int)] -> [String]
+namesOlder35 :: [(String, Int, Int)] -> [String]
+namesOlder35 xs = foldl (\names (name, _, _) -> names ++ [name]) [] (filter (\(_, age, salary) -> age > 35 && salary > 300) xs)
 
 
-
--- main = print (namesOlder35 [("John", 23, 200), ("Bob", 60, 700), ("Anna", 38, 427), ("Joe", 36, 289), ("Doe", 22, 384), ("Marie", 55, 573), ("Lucy", 37, 400)])  
+main = print (namesOlder35 [("John", 23, 200), ("Bob", 60, 700), ("Anna", 38, 427), ("Joe", 36, 289), ("Doe", 22, 384), ("Marie", 55, 573), ("Lucy", 37, 400)])  
 -- ["Bob", "Anna", "Marie", "Lucy"]
 
 

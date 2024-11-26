@@ -204,8 +204,8 @@ main = print $ moreThanNGrades students 1 -- [(2,"BME"),(3,"Corvinus")]
 
 -- b. Write a function which returns the students with the highest average grade.
 
-getAvgGrade :: Student -> Float
-getAvgGrade student = sum (grades student) / (length grades student)
+-- getAvgGrade :: Student -> Float
+-- getAvgGrade student = sum (grades student) / (length grades student)
 
 -- main = print $ getAvgGrade (students!!0)
 

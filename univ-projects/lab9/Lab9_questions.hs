@@ -11,23 +11,31 @@ data Employee = Employee {
 
 -- a) Create two employees, using different ways
     
--- emp1 :: Employee
+emp1 :: Employee
+emp1 = Employee {employeeID = 111, companyName = "X", programmer = True}
 
--- emp2 :: Employee
+emp2 :: Employee
+emp2 = Employee 111 "Google" False
 
 -- main = print $ emp1
 -- main = print $ emp2 
 
 
 -- b) Create a method which checks whether an Employee is a programmer. If he is an employee print "Yes", and "No" otherwise
--- isProgrammer :: Employee -> String
+isProgrammer :: Employee -> String
+isProgrammer employee 
+    | programmer employee = "Yes"
+    | otherwise = "No"
 
 -- main = print $ isProgrammer emp1 -- "Yes"
 -- main = print $ isProgrammer emp2 -- "No"
 
 
 -- c) Twitter is being renamed to X. Change the companyName of employees working in X to Twitter, only if they are programmers.
--- changeCompanyName :: Employee -> Employee
+changeCompanyName :: Employee -> Employee
+changeCompanyName employee
+    | programmer employee && companyName employee == "X" = employee { companyName="Twitter" }
+    | otherwise = employee
 
 -- main = print $ changeCompanyName emp2 -- Employee {employeeID = 333, companyName = "Twitter", programmer = False}
 -- main = print $ changeCompanyName (Employee 111 "Twitter" True) -- Employee {employeeID = 111, companyName = "X", programmer = True}
@@ -49,31 +57,44 @@ simplify Q {nom=n,den=d}
 mkQ :: Int -> Int -> Q
 mkQ n d = simplify (Q n d)
 
---equalQ :: Q -> Q -> Bool
+equalQ :: Q -> Q -> Bool
+equalQ (Q n1 d1) (Q n2 d2) = n1 * d2 == n2 * d1
 
---smallerQ :: Q -> Q -> Bool
+smallerQ :: Q -> Q -> Bool
+smallerQ (Q n1 d1) (Q n2 d2) = n1 * d2 < n2 * d1
 
---plusQ :: Q -> Q -> Q
+plusQ :: Q -> Q -> Q
+plusQ (Q n1 d1) (Q n2 d2) = Q {nom = n1*d2 + n2*d1, den = d1*d2}
 
---decrementQ :: Q -> Q -> Q
+decrementQ :: Q -> Q -> Q
+decrementQ (Q n1 d1) (Q n2 d2) = Q {nom = n1*d2 - n2*d1, den = d1*d2}
 
---timesQ :: Q -> Q -> Q
+timesQ :: Q -> Q -> Q
+timesQ (Q n1 d1) (Q n2 d2) = Q {nom = n1*n2, den = d1*d2}
 
---divideQ :: Q -> Q -> Q
+divideQ :: Q -> Q -> Q
+divideQ (Q n1 d1) (Q n2 d2) = Q {nom = n1*d2, den = d1*n2}
 
---absoluteQ :: Q -> Q
+absoluteQ :: Q -> Q
+absoluteQ (Q n d) = Q { nom = abs n, den = abs d}
 
---signOfQ :: Q -> Int
+signOfQ :: Q -> Int
+signOfQ (Q n d)
+    | n < 0 || d < 0 = -1
+    | otherwise = 1
 
---negateQ :: Q -> Q
+-- negateQ :: Q -> Q
 
---integerToQ :: Int -> Q
+integerToQ :: Int -> Q
+integerToQ a = Q { nom = a, den = 1 }
 
---rationaltoInt :: Q -> Int
+rationaltoInt :: Q -> Int
+rationaltoInt (Q n d) = n `div` d
 
 --isIntQ :: Q -> Bool
 
---rationaltoReal :: Q -> Float
+rationaltoReal :: Q -> Float
+rationaltoReal (Q n d) = fromIntegral n / fromIntegral d
 
 q0 = Q { nom = 0, den = 1 }
 q1 = Q { nom = 1, den = 1 }
@@ -82,8 +103,8 @@ q3 = Q { nom = 3, den = 4 }
 
 --main = print $ simplify (mkQ 81 90) -- Q {nom = 9, den = 10}
 --main = print $ mkQ 81 90 -- Q {nom = 9, den = 10}
---main = print $ equalQ (mkQ 9 10) (mkQ 81 90) -- True
---main = print $ smallerQ q2 q3 -- True
+-- main = print $ equalQ (mkQ 9 10) (mkQ 81 90) -- True
+-- main = print $ smallerQ q2 q3 -- True
 --main = print $ plusQ q2 q0 -- Q {nom = 0, den = 1}
 --main = print $ decrementQ q0 q3 -- Q {nom = 0, den = 1}
 --main = print $ timesQ q0 q2 -- Q {nom = 0, den = 1}
@@ -94,7 +115,7 @@ q3 = Q { nom = 3, den = 4 }
 --main = print $ integerToQ 4 -- Q {nom = 4, den = 1}
 --main = print $ rationaltoInt q2 -- 0
 --main = print $ isIntQ q1 -- True
---main = print $ rationaltoReal q2 -- 0.5
+-- main = print $ rationaltoReal q2 -- 0.5
 
 
 
@@ -102,18 +123,33 @@ q3 = Q { nom = 3, den = 4 }
 -- Test about 3 points if they are visible and can form a right-angled triangle.
 
 data Point = Point 
-            { x       ::  Float
-            , y       ::  Float
-            , visible ::  Bool
+            { x       :: Float
+            , y       :: Float
+            , visible :: Bool
             } deriving Show
 
+-- Example Points
 origo = Point {x = 0.0, y = 0.0, visible = True}
 point1 = Point {x = 0.0, y = 3.0, visible = True}
-point2 = Point {x = 2.0, y = 0.0, visible = True}
+point2 = Point {x = 4.0, y = 0.0, visible = True}
 
---isTriangle :: Point -> Point -> Point -> Bool
+-- Function to calculate the squared distance between two points
+distanceSquared :: Point -> Point -> Float
+distanceSquared (Point x1 y1 _) (Point x2 y2 _) =
+    (x2 - x1) ** 2 + (y2 - y1) ** 2
 
--- main = print $ isTriangle origo point1 point2 -- True
+-- Check if three points form a right-angled triangle
+isTriangle :: Point -> Point -> Point -> Bool
+isTriangle p1 p2 p3
+    | all visible [p1, p2, p3] = let
+        a2 = distanceSquared p1 p2
+        b2 = distanceSquared p1 p3
+        c2 = distanceSquared p2 p3
+        in a2 + b2 == c2 || a2 + c2 == b2 || b2 + c2 == a2
+    | otherwise = False  -- At least one point is not visible
+
+-- main = print $ isTriangle origo point1 point2  -- True
+
 
 
 
@@ -238,9 +274,16 @@ asia = Continent "Asia" [china, india]
 southAmerica = Continent "South America" [argentina, brazil, chile]
  
 -- Helper functions
---isPrime :: Int -> Bool
+isPrime :: Int -> Bool
+isPrime n = n > 1 && null [x | x <- [2..n-1], n `mod` x == 0]
+
+main = print $ isPrime 7
  
---checkI :: Country -> Bool
+checkI :: Country -> Bool
+checkI (Country _ capitalCity) = isPrime (countI capitalCity)
+    where
+        countI :: String -> Int
+        countI = length . filter (\c -> c == 'i' || c =='I')
  
 --checkCount :: Continent -> Bool
  

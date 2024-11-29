@@ -124,12 +124,12 @@ nodeCountLevel (Node _ l r) n
     | n > 1 = nodeCountLevel l (n-1) + nodeCountLevel r (n-1)
     | otherwise = 0
 
-main = do
-    print $ nodeCountLevel tree1 5  -- 0
-    print $ nodeCountLevel tree2 4  -- 2
-    print $ nodeCountLevel tree3 3  -- 3
-    print $ nodeCountLevel tree4 1  -- 1
-    print $ nodeCountLevel tree5 2  -- 2
+-- main = do
+--     print $ nodeCountLevel tree1 5  -- 0
+--     print $ nodeCountLevel tree2 4  -- 2
+--     print $ nodeCountLevel tree3 3  -- 3
+--     print $ nodeCountLevel tree4 1  -- 1
+--     print $ nodeCountLevel tree5 2  -- 2
 
 
 -- Item type
@@ -158,13 +158,21 @@ t1 = Node (Item "a" 5)
 	All the key inside tree are unique.
 -}
 
+maxSelection :: Tree Item -> Int
+maxSelection Leaf = minBound
+maxSelection (Node x l r) = max (value x) (max (maxSelection l) (maxSelection r))
 
---searchMaxKey :: Tree Item -> String
+searchMaxKey :: Tree Item -> String
+searchMaxKey Leaf = ""
+searchMaxKey (Node x l r) 
+    | value x == maxSelection (Node x l r) = key x
+    | maxSelection l == maxSelection (Node x l r) = searchMaxKey l
+    | otherwise = searchMaxKey r
 
--- main = do
+main = do
 
---     putStrLn "Testing searchMaxKey:"
---     print $ searchMaxKey t1 --"e"
+    putStrLn "Testing searchMaxKey:"
+    print $ searchMaxKey t1 --"e"
 
 {-
     Task b:  

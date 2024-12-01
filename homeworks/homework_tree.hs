@@ -169,10 +169,10 @@ searchMaxKey (Node x l r)
     | maxSelection l == maxSelection (Node x l r) = searchMaxKey l
     | otherwise = searchMaxKey r
 
-main = do
+-- main = do
 
-    putStrLn "Testing searchMaxKey:"
-    print $ searchMaxKey t1 --"e"
+--     putStrLn "Testing searchMaxKey:"
+--     print $ searchMaxKey t1 --"e"
 
 {-
     Task b:  
@@ -195,9 +195,16 @@ list1 = [i1,i2,i3,i4,i5]
 list2 = [it1,it2,it3]
 
 
---unionItems :: [Item] -> [Item] -> [Item]
+unionItems :: [Item] -> [Item] -> [Item]
+unionItems [] [] = []
+unionItems [] l = l
+unionItems l [] = l
 
--- main = do
---     putStrLn "\nTesting unionItems:"
---     print $ unionItems list1 list2
+unionItems (x:xs) (y:ys)
+    | key x == key y = if value x > value y then x : unionItems xs ys else y : unionItems xs ys
+    | otherwise = x : unionItems xs (y:ys)
+
+main = do
+    putStrLn "\nTesting unionItems:"
+    print $ unionItems list1 list2
 

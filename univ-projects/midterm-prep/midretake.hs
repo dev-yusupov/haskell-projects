@@ -1,6 +1,9 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use camelCase" #-}
 import Data.Char (chr)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
+import Data.List (tails)
 {-
 Write <NAME> and <NEPTUN CODE> here.
 by this YOU DECLARE this file is 
@@ -103,7 +106,7 @@ followedByEven (x:y:xs) nr
 
 -- main = print (followedByEven [3, 4, 5, 2, 3, 5, 3, 8] 3) -- 2
 -- main = print (followedByEven [1,6,3,6,6,4,9] 6) -- 2
-main = print (followedByEven [1,2,5,3,4,5,7,5] 5) -- 0
+-- main = print (followedByEven [1,2,5,3,4,5,7,5] 5) -- 0
 
 
 {-5. Sum2
@@ -113,8 +116,16 @@ Eg. [1..5] 5 -> [(1,4),(2,3)]
 (1,4) and (4,1) counts the same so only (1,4) in result
 -}
 
+generatePairs :: [Int] -> [(Int, Int)]
+generatePairs [] = []
+generatePairs xs = [(x, y) | (x:rest) <- tails xs, y <- rest]
 
--- sum_two :: [Int] -> Int -> [(Int, Int)]
+isValidPair :: (Int, Int) -> Int -> Bool
+isValidPair (x, y) target = target == x + y
+
+sum_two :: [Int] -> Int -> [(Int, Int)]
+sum_two [] _ = []
+sum_two xs target = [pair | pair <- generatePairs xs, isValidPair pair target]
 
 -- main = print (sum_two [1..5] 5) -- [(1,4),(2,3)]
 -- main = print (sum_two [1..5] 3) -- [(1,2)]
@@ -136,7 +147,13 @@ Examples:
 []              ==>  ""
 -}
 
--- backSpace :: [Char] -> String
+backSpace :: [Char] -> String
+backSpace [] = []
+backSpace [x] = [x | x /= '#']
+backSpace (x:y:xs)
+  | x == '#' = backSpace (y:xs)
+  | y == '#' = backSpace xs
+  | otherwise = x : backSpace (y:xs)
 
 -- main = print (backSpace ['a','b','c','#','d','#','#','c']) -- "abc"
 -- main = print (backSpace ['a','b','c','#','#','d','#','#','#']) -- "ab"
@@ -156,7 +173,16 @@ We add sum of digits of integers to integers themselves.
 So final list becomes [26,18].
 -}
 
--- filterThenAdd :: [Int] -> [Int]
+sumOfDigits :: Int -> Int
+sumOfDigits 0 = 0
+sumOfDigits n = digit + sumOfDigits (n `div` 10)
+  where
+    digit = n `mod` 10
+
+filterThenAdd :: [Int] -> [Int]
+filterThenAdd xs = map (\x -> x + sumOfDigits x) filtered
+  where
+    filtered = filter (\x -> x `mod` 6 /= 0) xs
 
 -- main = print (filterThenAdd [12, 22, 9, 6, 18]) -- [26,18]
 -- main = print (filterThenAdd [11, 25, 24, 47, 59]) -- [13, 32, 58, 73]

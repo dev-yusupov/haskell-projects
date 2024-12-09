@@ -198,7 +198,20 @@ filterThenAdd xs = map (\x -> x + sumOfDigits x) filtered
 -- 'a' before after 'e'
 -- */
 
--- crosswordWords :: [[Char]] -> [String]
+isOrderCorrect :: [Char] -> Bool
+isOrderCorrect [] = True
+isOrderCorrect (x:xs)
+  | x == 'a' = isOrderCorrect xs
+  | x == 'e' = all (=='e') xs
+  | otherwise = isOrderCorrect xs
+
+isValidWord :: [Char] -> Bool
+isValidWord chars = 
+  let vowels = filter (`elem` "ae") chars
+  in length vowels == 2 && 'a' `elem` vowels && 'e' `elem` vowels && isOrderCorrect vowels
+
+crosswordWords :: [[Char]] -> [String]
+crosswordWords xs = [map id word | word <- xs, isValidWord word]
 
 -- main = print (crosswordWords [['b','a','b','e','l'],['l','a','s','e','r'],['b','o','o','k']]) -- ["babel", "laser"]
 -- main = print (crosswordWords [['e','a','r','l','y'],['b','a','k','e','r'],['l','e','v','e','r']]) -- ["baker"]
@@ -214,7 +227,9 @@ Explanation:
 (2, 3, 5) -> 2 and 3 are adjacent numbers, and 5 is their sum
 -}
 
--- adjacent_sum :: [Int] -> [(Int, Int, Int)]
+adjacent_sum :: [Int] -> [(Int, Int, Int)]
+adjacent_sum [x] = []
+adjacent_sum (x:y:xs) = (x, y, x + y) : adjacent_sum (y:xs)
 
 -- main = print (adjacent_sum [1..3]) -- [(1,2,3),(2,3,5)]
 -- main = print (adjacent_sum [1..5]) -- [(1,2,3),(2,3,5),(3,4,7),(4,5,9)]
@@ -233,7 +248,26 @@ and the digits (5 and 2) at odd positions are prime.
 Write a function that takes list and outputs a list only with good numbers.
 -}
 
--- goodNumbers :: [Int] -> [Int]
+isPrime :: Int -> Bool
+isPrime 2 = True
+isPrime n = length [x | x <- [1..n], n `mod` x == 0] == 2
+
+isGoodNumber :: Int -> Bool
+isGoodNumber n = all checkDigit (zip [0..] (digits n))
+  where
+    digits :: Int -> [Int]
+    digits 0 = []
+    digits n =  digits (n `div` 10) ++ [(n `mod` 10)]
+
+    checkDigit :: (Int, Int) -> Bool
+    checkDigit (ind, digit)
+      | ind `mod` 2 == 0 = even digit
+      | ind `mod` 2 == 1 = isPrime digit
+
+goodNumbers :: [Int] -> [Int]
+goodNumbers xs = filter isGoodNumber xs
+
+-- main = print (zip [0..] (digit 2582))
 
 -- main = print (goodNumbers [2582, 3245]) -- [2582]
 -- main = print (goodNumbers [2,4,6,8]) -- [2,4,6,8]
@@ -253,7 +287,9 @@ index:	   0     1     2     3     4     5
 Result: [(2,0),(3,0),(4,1),(4,1),(3,2),(2,2)]		
 -}
 
--- splitTuple :: [(Int,Int)] -> [(Int,Int)]
+splitTuple :: [(Int,Int)] -> [(Int,Int)]
+splitTuple [] = []
+splitTuple xs = concatMap (\((x, y), ind) -> [(x, ind), (y, ind)]) (zip xs [0..])
 
 -- main = print (splitTuple [(2,3),(4,4),(3,2)]) -- [(2,0),(3,0),(4,1),(4,1),(3,2),(2,2)]
 -- main = print (splitTuple [(7,4),(8,9)]) -- [(7,0),(4,0),(8,1),(9,1)]
@@ -279,7 +315,12 @@ element 140 is the total weight of team 2.
 -}
 
 
--- rowWeights :: [Int] -> (Int,Int)
+rowWeights :: [Int] -> (Int, Int)
+rowWeights xs = (odds, evens)
+  where
+    odds  = sum (map snd (filter (odd . fst) (zip [1..] xs)))
+    evens = sum (map snd (filter (even . fst) (zip [1..] xs)))
+
 
 -- main = print (rowWeights []) -- (0,0)
 -- main = print (rowWeights [70, 90]) -- (70, 90)
@@ -299,8 +340,21 @@ Given a list of integers, return only the automorphic numbers of the list.
 625 is an automorphic number because 625^2 = 390625, and 625 is at the end of 390625.
 -}
 
+isAutomorphic :: Int -> Bool
+isAutomorphic n = checkDigits (digitize n) (digitize (n ^ 2))
+  where
+    digitize :: Int -> [Int]
+    digitize 0 = []
+    digitize n = [n `mod` 10] ++ digitize (n `div` 10)
 
--- automorphicNumber :: [Int] -> [Int]
+    checkDigits :: [Int] -> [Int] -> Bool
+    checkDigits [] _ = True
+    checkDigits (x:xs) (y:ys)
+      | x == y = checkDigits xs ys
+      | otherwise = False
+
+automorphicNumber :: [Int] -> [Int]
+automorphicNumber xs = filter isAutomorphic xs
 
 
 -- main = print (automorphicNumber [5, 76, 625, 376, 9376]) -- [5,76,625,376,9376]

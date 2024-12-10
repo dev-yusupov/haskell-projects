@@ -1,5 +1,5 @@
 import Data.List (maximumBy)
-import Data.Map as Map
+import qualified Data.Map as Map
 ---------------------------------------------------------------
 
 -- Functional Programming end-term
@@ -60,7 +60,7 @@ compareStudents :: Student -> Student -> Ordering
 compareStudents x y = compare (sum (grades x)) (sum (grades y))
 
 getBestBScStudent :: [Student] -> String
-getBestBScStudent students = studentId (maximumBy compareStudents (Prelude.filter (\s -> level s == BSc) students))
+getBestBScStudent students = studentId (maximumBy compareStudents (filter (\s -> level s == BSc) students))
 
 -- main = print $ getBestBScStudent [st1] -- "st-1"
 -- main = print $ getBestBScStudent [st1, st4, st5] -- "st-4"
@@ -86,17 +86,16 @@ r is repeated 2 times in the given string
 t is repeated 2 times in the given string
 -}
 
-charsMap :: Map.Map Char Int
-charsMap = Map.empty
+filterChars :: (Char, Int) -> Bool
+filterChars (c, n) = n > 1
 
-countChars :: String -> Map.Map Char Int -> Map.Map Char Int
-countChars xs counts
-  = Prelude.foldl (\ counts x -> Map.insertWith (+) x 1 counts) counts xs
+count :: String -> [(Char, Int)]
+count str = filter filterChars (Map.toList (countCharsHelper str Map.empty))
+  where
+    countCharsHelper [] freqMap = freqMap
+    countCharsHelper (x:xs) freqMap = countCharsHelper xs (Map.insertWith (+) x 1 freqMap)
 
-
--- count :: String -> [(Char, Int)]
-
---main = count "thequickbrownfoxjumpsoverthelazydog" -- [('t',2),('h',2),('e',3),('u',2),('r',2),('o',4)]
+-- main = print $ count "thequickbrownfoxjumpsoverthelazydog" -- [('t',2),('h',2),('e',3),('u',2),('r',2),('o',4)]
 --main = count "Helloworld" -- [('l',3),('o',2)]
 --main = count "FUNCTIONSLPROGRAMMINGISFUN" -- [('F',2),('U',2),('N',4),('I',3),('O',2),('S',2),('R',2),('G',2),('M',2)]
 --main = count "Cleanisamazing" -- [('a',3),('n',2),('i',2)]
@@ -120,6 +119,11 @@ countChars xs counts
 * 4. '-' - Takes 2 lists and computes the "differences" of lists
 * Ex.: [1,2,3,4,5] - [2,4] = [1,3,5]
 -}
+
+instance Num a => Num [a] where
+  (*) [] _ = []
+  (*) _ [] = []
+  (*) (x:xs) (y:ys) = (x*y) : (xs * ys)
 
 -- *
 

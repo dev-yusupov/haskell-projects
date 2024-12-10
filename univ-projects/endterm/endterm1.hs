@@ -1,3 +1,5 @@
+import Data.List (maximumBy)
+import Data.Map as Map
 ---------------------------------------------------------------
 
 -- Functional Programming end-term
@@ -20,7 +22,7 @@
 -- The most serious consequence of a disciplinary fault can be dismissal
 -- of the student from the University.
 main :: IO()
-main = print "endterm"
+-- main = print "endterm"
 {-
 -- 1.----------------------------
 -- Record Student. (10 points)
@@ -37,24 +39,34 @@ Create an Algebraic type `StudyLevel` which can have
  If multiple students have same maximum average return any of their IDs.
 -}
 
---StudyLevel
+data StudyLevel = BSc | MSc | PhD
+    deriving (Eq, Show)
 
---Student
+data Student = Student {
+    studentId :: String,
+    level :: StudyLevel,
+    grades :: [Int]
+} deriving (Show)
 
 --
---st1 = Student {id="st-1", level=BSc, grades=[3,4,3]}
---st2 = Student {id="st-2", level=MSc, grades=[3,1,3]}
---st3 = Student {id="st-3", level=PhD, grades=[5]}
---st4 = Student {id="st-4", level=BSc, grades=[5,5,4]}
---st5 = Student {id="st-5", level=BSc, grades=[5,5,5,2,4]}*/
+st1 = Student {studentId="st-1", level=BSc, grades=[3,4,3]}
+st2 = Student {studentId="st-2", level=MSc, grades=[3,1,3]}
+st3 = Student {studentId="st-3", level=PhD, grades=[5]}
+st4 = Student {studentId="st-4", level=BSc, grades=[5,5,4]}
+st5 = Student {studentId="st-5", level=BSc, grades=[5,5,5,2,4]}
+-- */
 
---getBestBScStudent :: [Student] -> String
+compareStudents :: Student -> Student -> Ordering
+compareStudents x y = compare (sum (grades x)) (sum (grades y))
 
---main = getBestBScStudent [st1] -- "st-1"
---main = getBestBScStudent [st1, st4, st5] -- "st-4"
+getBestBScStudent :: [Student] -> String
+getBestBScStudent students = studentId (maximumBy compareStudents (Prelude.filter (\s -> level s == BSc) students))
+
+-- main = print $ getBestBScStudent [st1] -- "st-1"
+-- main = print $ getBestBScStudent [st1, st4, st5] -- "st-4"
 --main = getBestBScStudent [st2, st3, st5] -- "st-5"
 --main = getBestBScStudent [st1, st2, st3, st4, st5] -- "st-4"
---main = getBestBScStudent [] -- "ERROR"
+-- main = print $ getBestBScStudent [] -- "ERROR"
 
 
 -- 2.----------------------------
@@ -74,7 +86,15 @@ r is repeated 2 times in the given string
 t is repeated 2 times in the given string
 -}
 
---count :: String -> [(Char, Int)]
+charsMap :: Map.Map Char Int
+charsMap = Map.empty
+
+countChars :: String -> Map.Map Char Int -> Map.Map Char Int
+countChars xs counts
+  = Prelude.foldl (\ counts x -> Map.insertWith (+) x 1 counts) counts xs
+
+
+-- count :: String -> [(Char, Int)]
 
 --main = count "thequickbrownfoxjumpsoverthelazydog" -- [('t',2),('h',2),('e',3),('u',2),('r',2),('o',4)]
 --main = count "Helloworld" -- [('l',3),('o',2)]

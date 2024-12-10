@@ -1,4 +1,5 @@
-import Data.List (maximumBy)
+{-# LANGUAGE ParallelListComp #-}
+import Data.List (maximumBy, nub)
 import qualified Data.Map as Map
 ---------------------------------------------------------------
 
@@ -120,23 +121,16 @@ count str = filter filterChars (Map.toList (countCharsHelper str Map.empty))
 * Ex.: [1,2,3,4,5] - [2,4] = [1,3,5]
 -}
 
--- class ListOps a where
---   (.*) :: [a] -> [a] -> [a]
---   (.+) :: [a] -> [a] -> [a]
---   (~) :: [a] -> [a]
---   (-) :: [a] -> [a] -> [a]
+instance Num [Int]where
+  (*) :: [Int] -> [Int] -> [Int]
+  a * b = [x * y | x <- a | y <- b]
 
--- instance (Ord a, Num a) => ListOps [a] where
---   (.*) xs ys = zipWith (*) xs ys
+multiply3 :: [Int] -> [Int] -> [Int]
+multiply3 a b = a * b
 
---   (.+) xs ys = zipWith (\x y -> x + y) xs ys
 
---   (~) xs = [x | x <- xs, x > 0]
-
---   (-) xs ys = [x | x <- xs, x `notElem` ys]
-
--- main = print $ [1, 2, -1] * [2, 3, 4] -- [2,6,-4]
--- main = [1,2,3] * [2, 4] -- [2, 8]
+-- main = print $ multiply3 [1, 2, -1] [2, 3, 4] -- [2,6,-4]
+-- main = print $ multiply3 [1,2,3] [2, 4] -- [2, 8]
 -- main = [1, 2, -1] + [2, 3, 4] -- [3, 5, 3]
 -- main = [1,-2,3] + [2, 4] -- [3, 2]
 -- main = ~[1, ~1, 3, ~2, ~3, 4] -- [1, 3, 4]
@@ -203,10 +197,16 @@ linkedlist2 = Pointer "y" (Pointer "e" (Pointer "H" Nil))
 * and inserts a new node at the end of it with the given value.
 -}
 
---Insert :: (LinkedList String) String -> (LinkedList String)
+insertList :: LinkedList String -> String -> LinkedList String
+insertList (Pointer a Nil) str = Pointer str Nil
+insertList (Pointer a ptr) str = Pointer a (insertList ptr str)
 
---main = Insert linkedlist1 "World" -- (Pointer "o" (Pointer "l" (Pointer "l" (Pointer "e" (Pointer "H" (Pointer "World" Nil))))))
---main = Insert linkedlist1 "" -- (Pointer "o" (Pointer "l" (Pointer "l" (Pointer "e" (Pointer "H" (Pointer "" Nil))))))
+instance Show (LinkedList String) where
+  show Nil = "Nil"
+  show (Pointer a ptr) = "(Pointer " ++ show a ++ " " ++ show ptr ++ ")"
+
+-- main = print $ insertList linkedlist1 "World" -- (Pointer "o" (Pointer "l" (Pointer "l" (Pointer "e" (Pointer "H" (Pointer "World" Nil))))))
+-- main = Insert linkedlist1 "" -- (Pointer "o" (Pointer "l" (Pointer "l" (Pointer "e" (Pointer "H" (Pointer "" Nil))))))
 --main = Insert linkedlist2 "!!" -- (Pointer "y" (Pointer "e" (Pointer "H" (Pointer "!!" Nil))))
 --main = Insert Nil "bye-bye" -- (Pointer "bye-bye" Nil)
 
@@ -217,9 +217,15 @@ linkedlist2 = Pointer "y" (Pointer "e" (Pointer "H" Nil))
 * and returns a reversed version of it.
 -}
 
---Reverse :: (LinkedList String) -> (LinkedList String)
+-- reverseHelper :: LinkedList String -> LinkedList String
+-- reverseHelper Nil acc = acc
+-- reverseHelper (Pointer x xs) acc = reverseHelper xs (Pointer x acc)
 
---main = Reverse linkedlist1 --(Pointer "H" (Pointer "e" (Pointer "l" (Pointer "l" (Pointer "o" Nil)))))
+-- reverseLs :: LinkedList String -> LinkedList String
+-- reverseLs (Pointer a (Pointer b Nil)) = Pointer b (Pointer a Nil)
+-- reverseLs list = reverseHelper list
+
+-- main = print $ reverseLs linkedlist1 --(Pointer "H" (Pointer "e" (Pointer "l" (Pointer "l" (Pointer "o" Nil)))))
 --main = Reverse (Insert linkedlist1 "World") --(Pointer "World" (Pointer "H" (Pointer "e" (Pointer "l" (Pointer "l" (Pointer "o" Nil))))))
 --main = Reverse linkedlist2 -- (Pointer "H" (Pointer "e" (Pointer "y" Nil)))
 --main = Reverse Nil -- Nil
@@ -231,9 +237,13 @@ linkedlist2 = Pointer "y" (Pointer "e" (Pointer "H" Nil))
 * and removes the first occurrence of the given value if it exists.
 -}
 
---delete ::(LinkedList String) String -> (LinkedList String)
+delete :: LinkedList String -> String -> LinkedList String
+delete Nil str = Nil
+delete (Pointer a ptr) str
+  | a == str = ptr
+  | otherwise = Pointer a (delete ptr str)
 
---main = delete linkedlist1 "h" --(Pointer "o" (Pointer "l" (Pointer "l" (Pointer "e" (Pointer "H" Nil)))))
+-- main = print $ delete linkedlist1 "h" --(Pointer "o" (Pointer "l" (Pointer "l" (Pointer "e" (Pointer "H" Nil)))))
 --main = delete linkedlist1 "H" -- (Pointer "o" (Pointer "l" (Pointer "l" (Pointer "e" Nil))))
 --main = delete linkedlist2 "y" -- (Pointer "e" (Pointer "H" Nil))
 --main = delete Nil "Hye" -- Nil
@@ -245,9 +255,11 @@ linkedlist2 = Pointer "y" (Pointer "e" (Pointer "H" Nil))
 * concatenates the second to the end of first.
 -}
 
---concat ::(LinkedList String) (LinkedList String) -> (LinkedList String)
+concatL ::LinkedList String -> LinkedList String -> LinkedList String
+concatL Nil second = second
+concatL (Pointer x ptr) second = Pointer x (concatL ptr second)
 
---main = concat linkedlist1 linkedlist2 -- (Pointer "o" (Pointer "l" (Pointer "l" (Pointer "e" (Pointer "H" (Pointer "y" (Pointer "e" (Pointer "H" Nil))))))))
+-- main = print $ concatL linkedlist1 linkedlist2 -- (Pointer "o" (Pointer "l" (Pointer "l" (Pointer "e" (Pointer "H" (Pointer "y" (Pointer "e" (Pointer "H" Nil))))))))
 --main = concat linkedlist2 linkedlist2 -- (Pointer "y" (Pointer "e" (Pointer "H" (Pointer "y" (Pointer "e" (Pointer "H" Nil))))))
 --main = concat Nil linkedlist2 -- (Pointer "y" (Pointer "e" (Pointer "H" Nil)))
 --main = concat linkedlist2 Nil -- (Pointer "y" (Pointer "e" (Pointer "H" Nil)))
@@ -267,7 +279,7 @@ linkedlist2 = Pointer "y" (Pointer "e" (Pointer "H" Nil))
 * while posssibleFake is not a fake account of per3.
 -}
 
-data BasicPersonAccount = BasicPersonAccount {name:: String, age::Int, inQueue::Bool, ip::Int}
+data BasicPersonAccount = BasicPersonAccount {name:: String, age::Int, inQueue::Bool, ip::Int} deriving (Show)
 
 per1 :: BasicPersonAccount
 per1 = BasicPersonAccount {name = "A", age=45, inQueue=True, ip = 100025 }
@@ -284,11 +296,31 @@ fakePer1 = BasicPersonAccount {name = "A", age=12, inQueue=True, ip = 100025}
 posssibleFake :: BasicPersonAccount
 posssibleFake = BasicPersonAccount {name = "C", age=18, inQueue=True, ip = 12205}
 
---findFakes :: [BasicPersonAccount] -> [BasicPersonAccount]
+-- instance Eq BasicPersonAccount where
+--   (BasicPersonAccount name1 age1 inQueue1 ip1) == (BasicPersonAccount name2 age2 inQueue2 ip2) =
+--     name1 == name2 && ip1 == ip2
 
---main = findFakes [per1, fakePer1, per2, per3, fakePer1, posssibleFake]
+-- processAccount :: BasicPersonAccount -> [BasicPersonAccount] -> [BasicPersonAccount] -> [BasicPersonAccount]
+-- processAccount x [] seen = [x]
+-- processAccount x (y:ys) seen
+--   | BasicPersonAccount (name x) _ _ (ip x) == (BasicPersonAccount (name y) _ _ (ip y)) =
+--     let updatedX = x {inQueue = False}
+--     in updatedX : processAccount y ys (y:seen)
+--   | otherwise =
+--     if y `elem` seen then
+--       processAccount x ys seen
+--     else
+--       x : processAccount y ys (y:seen)
+
+-- findFakes :: [BasicPersonAccount] -> [BasicPersonAccount]
+-- findFakes [] = []
+-- findFakes (x:xs)
+--   | x `elem` xs = (x {inQueue = False}) : findFakes (filter (/= x) xs)
+--   | otherwise = x : findFakes xs
+
+-- main = print $ findFakes [per1, fakePer1, per2, per3, fakePer1, posssibleFake]
 --[(BasicPersonAccount "A" 45 False 100025),(BasicPersonAccount "B" 22 True 755542),(BasicPersonAccount "C" 18 True 155200),(BasicPersonAccount "C" 18 True 12205)]
---main = findFakes [per1, per1, per1] -- [(BasicPersonAccount "A" 45 True 100025)]
+-- main = print $ findFakes [per1, per1, per1] -- [(BasicPersonAccount "A" 45 True 100025)]
 --main = findFakes [per3, posssibleFake] -- [(BasicPersonAccount "C" 18 True 155200),(BasicPersonAccount "C" 18 True 12205)]
 --main = findFakes [] -- []
 
@@ -309,10 +341,18 @@ mat2 = [[3,3,3], [0,0,0], [1,1,1]]
 mat3 = [[3,3,3,3], [3,3,3,3], [3,3,3,3], [3,3,3,3]]
 mat4 = [[3,3,3,3], [3,(-3),3,3], [3,3,(-3),3], [3,3,10,3]]
 
---largestmat :: [[[Int]]] -> [[Int]]
+calDiagonal :: [[Int]] -> Int
+calDiagonal [] = 0
+calDiagonal (x:xs) = head x + calDiagonal (map tail xs)
 
---main = largestmat [mat1, mat2] -- [[1,2,3],[1,1,1],[3,3,3]]
---main = largestmat [mat1, mat3] -- [[3,3,3,3],[3,3,3,3],[3,3,3,3],[3,3,3,3]]
+largestmat :: [[[Int]]] -> [[Int]]
+largestmat [x] = x
+largestmat (x:xs)
+  | calDiagonal x > calDiagonal (largestmat xs) = x
+  | otherwise = largestmat xs
+
+-- main = print $ largestmat [mat1, mat2] -- [[1,2,3],[1,1,1],[3,3,3]]
+-- main = print $ largestmat [mat1, mat3] -- [[3,3,3,3],[3,3,3,3],[3,3,3,3],[3,3,3,3]]
 --main = largestmat [mat2, mat3] -- [[3,3,3,3],[3,3,3,3],[3,3,3,3],[3,3,3,3]]
 --main = largestmat [mat1, mat2, mat3, mat4] -- [[3,3,3,3],[3,3,3,3],[3,3,3,3],[3,3,3,3]]
 --main = largestmat [mat1, mat2, mat4] -- [[1,2,3],[1,1,1],[3,3,3]]
@@ -338,10 +378,12 @@ list2 = Elem 2 (Elem 6 (Elem 6 (Elem 8 (list1) ) ) )
 list3 :: (MyList Int)
 list3 = Empty
 
---toString
+toString :: MyList Int -> [Int]
+toString Empty = []
+toString (Elem a ptr) = a : toString ptr
 
---main = toString list1 -- "[4,3,2,1]"
---main = toString list2 -- "[2,6,6,8,4,3,2,1]"
+-- main = print $ toString list1 -- "[4,3,2,1]"
+-- main = print $ toString list2 -- "[2,6,6,8,4,3,2,1]"
 --main = toString list3 -- "[]"
 
 
@@ -367,12 +409,28 @@ treeRight = Node (FirstName "A") Leaf (Node (LastName "B") Leaf ( Node (MiddleNa
 treeNone :: (Tree (TypeName String))
 treeNone = Leaf
 
+isFirstName :: TypeName String -> Bool
+isFirstName (FirstName _) = True
+isFirstName _ = False
 
---firstAndMiddle :: (Tree (TypeName String)) -> [String]
+isMiddleName :: TypeName String -> Bool
+isMiddleName (MiddleName _) = True
+isMiddleName _ = False
 
---main = firstAndMiddle treeBig -- ["Tariq","Beka","Mohido"]
---main = firstAndMiddle treeRight -- ["A","C","D"]
---main = firstAndMiddle treeNone -- []
+getName :: TypeName String -> String
+getName (FirstName name) = name
+getName (MiddleName name) = name
+getName (LastName name) = name
+
+firstAndMiddle :: Tree (TypeName String) -> [String]
+firstAndMiddle Leaf = []
+firstAndMiddle (Node a left right)
+  | isFirstName a || isMiddleName a = [getName a] ++ firstAndMiddle left ++ firstAndMiddle right
+  | otherwise = firstAndMiddle left ++ firstAndMiddle right
+
+-- main = print $ firstAndMiddle treeBig -- ["Tariq","Beka","Mohido"]
+-- main = print $ firstAndMiddle treeRight -- ["A","C","D"]
+-- main = print $ firstAndMiddle treeNone -- []
 
 
 -- 10.----------------------------
@@ -385,13 +443,20 @@ treeNone = Leaf
 * Note: The task is easiest if you create an instance for function toInt
 -}
 
+class ToInt a where
+  toInt :: a -> Int
 
 data OneOf a b = A a | B b
 
---findWhich :: [(OneOf String Char)] -> Int
+instance ToInt (OneOf String Char) where
+  toInt (A str) = length str
+  toInt (B _) = 1
 
---main = findWhich [(A "Hello"), (B 'h'), (A "This is new")] -- 17
---main = findWhich [(A "H"), (A "e"), (A "l")] -- 3
---main = findWhich [(B 'H'), (B 'e'), (B 'l')] -- 3
---main = findWhich [] --0
+findWhich :: [OneOf String Char] -> Int
+findWhich = foldr ((+) . toInt) 0
+
+-- main = print $ findWhich [(A "Hello"), (B 'h'), (A "This is new")] -- 17
+-- main = print $ findWhich [(A "H"), (A "e"), (A "l")] -- 3
+-- main = print $ findWhich [(B 'H'), (B 'e'), (B 'l')] -- 3
+main = print $ findWhich [] --0
 ------------------------------

@@ -120,20 +120,22 @@ count str = filter filterChars (Map.toList (countCharsHelper str Map.empty))
 * Ex.: [1,2,3,4,5] - [2,4] = [1,3,5]
 -}
 
-instance Num a => Num [a] where
-  (*) [] _ = []
-  (*) _ [] = []
-  (*) (x:xs) (y:ys) = (x*y) : (xs * ys)
+-- class ListOps a where
+--   (.*) :: [a] -> [a] -> [a]
+--   (.+) :: [a] -> [a] -> [a]
+--   (~) :: [a] -> [a]
+--   (-) :: [a] -> [a] -> [a]
 
--- *
+-- instance (Ord a, Num a) => ListOps [a] where
+--   (.*) xs ys = zipWith (*) xs ys
 
--- +
+--   (.+) xs ys = zipWith (\x y -> x + y) xs ys
 
--- ~
+--   (~) xs = [x | x <- xs, x > 0]
 
--- -
+--   (-) xs ys = [x | x <- xs, x `notElem` ys]
 
--- main = [1, 2, -1] * [2, 3, 4] -- [2,6,-4]
+-- main = print $ [1, 2, -1] * [2, 3, 4] -- [2,6,-4]
 -- main = [1,2,3] * [2, 4] -- [2, 8]
 -- main = [1, 2, -1] + [2, 3, 4] -- [3, 5, 3]
 -- main = [1,-2,3] + [2, 4] -- [3, 2]
@@ -170,10 +172,12 @@ bt2 = (BTNode (BTNode BTLeaf BTLeaf) (BTNode BTLeaf BTLeaf))
 bt3 = (BTNode (BTNode bt2 bt1) (BTNode BTLeaf bt2))
 bt4 = (BTNode (BTNode bt3 bt1) (BTNode BTLeaf bt2))
 
---getBTHeight :: BinaryTree -> Int
+getBTHeight :: BinaryTree -> Int
+getBTHeight BTLeaf = 1
+getBTHeight (BTNode left right) = 1 + max (getBTHeight left) (getBTHeight right)
 
---main = getBTHeight BTLeaf -- 1
---main = getBTHeight bt1 -- 3
+-- main = print $ getBTHeight BTLeaf -- 1
+-- main = print $ getBTHeight bt1 -- 3
 --main = getBTHeight bt2 -- 3
 --main = getBTHeight bt3 -- 5
 --main = getBTHeight bt4 -- 7

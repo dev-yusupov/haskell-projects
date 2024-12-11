@@ -1,3 +1,5 @@
+import Data.Char (ord, chr)
+import Data.List (sortBy)
 {-
 Functional Programming & end-term 
 This solution was submitted and prepared by
@@ -30,7 +32,12 @@ L shifted by 3 -> O, because O comes 3 positions after L in the set of English c
 ...
 -}
 
--- shiftChar :: Int -> Char -> Char
+shiftChar :: Int -> Char -> Char
+shiftChar n char = chr ((ord char - ord 'A' + n) `mod` 26 + ord 'A')
+
+shiftCipher :: String -> Int -> String
+shiftCipher "" _ = ""
+shiftCipher (x:xs) n = shiftChar n x : shiftCipher xs n
 
 -- main = print $ shiftCipher "HELLOWORLD" 3 -- KHOORZRUOG
 -- main = print $ shiftCipher "CLEANISFUN" 1 -- DMFBOJTGVO
@@ -75,7 +82,12 @@ tool4Location = Point { x = 100.0, y = 200.0 }
 * Hint: distance = square_root((x_2-x_1)^2+(y_2-y_1)^2) between any two points.
 -}
 
--- check :: Circle -> [Point] -> Bool
+checkD :: Circle -> Point -> Bool
+checkD (Circle (Point o1 o2) r) (Point x y) = r > sqrt ((x-o1)^2 + (y-o2)^2)
+
+check :: Circle -> [Point] -> Bool
+check _ [] = True
+check cir (x:xs) = checkD cir x && check cir xs
 
 -- main = print $ check broadcaster [carLocation, busLocation] -- True
 -- main = print $ check broadcaster [tool1Location, tool2Location] -- False
@@ -87,28 +99,28 @@ tool4Location = Point { x = 100.0, y = 200.0 }
 data Book = Book { title :: String, author :: String, pyear :: Int, numOfPages :: Int, canBeBorrowed :: Bool } deriving (Show)
 data Library = Library { libName :: String, books :: [Book] } deriving (Show)
 
-b1 :: Book; 
+b1 :: Book;
 b1 = Book { title = "C Programming Language", author = "Abel", pyear = 2022, numOfPages = 1501, canBeBorrowed = False }
-b2 :: Book; 
+b2 :: Book;
 b2 = Book { title = "Functional Programming", author = "Andrey", pyear = 1999, numOfPages = 1250, canBeBorrowed = True }
-b3 :: Book; 
+b3 :: Book;
 b3 = Book { title = "Java Programming Language", author = "John", pyear = 1508, numOfPages = 2980, canBeBorrowed = True }
-b4 :: Book; 
+b4 :: Book;
 b4 = Book { title = "OOP Programming", author = "Peter", pyear = 2020, numOfPages = 280, canBeBorrowed = False }
-b5 :: Book; 
+b5 :: Book;
 b5 = Book { title = "Programming", author = "James", pyear = 2000, numOfPages = 1645, canBeBorrowed = True }
 
-lib1 :: Library; 
+lib1 :: Library;
 lib1 = Library { libName = "lib1", books = [b1, b2] }
-lib2 :: Library; 
+lib2 :: Library;
 lib2 = Library { libName = "lib2", books = [b1, b2, b3] }
-lib3 :: Library; 
+lib3 :: Library;
 lib3 = Library { libName = "lib3", books = [b1, b2, b3, b4] }
-lib4 :: Library; 
+lib4 :: Library;
 lib4 = Library { libName = "lib4", books = [b1, b4, b5] }
-lib5 :: Library; 
+lib5 :: Library;
 lib5 = Library { libName = "lib5", books = [b1, b2, b3] }
-lib6 :: Library; 
+lib6 :: Library;
 lib6 = Library { libName = "lib6", books = [b4, b4, b2, b1] }
 
 {- 
@@ -119,6 +131,10 @@ if they have the same title, author, publishing year and pages.
 (Whether the books can be borrowed does not matter when comparing them.)
 -}
 
+instance Eq Book where
+    (Book title1 author1 pyear1 numOfPages1 canBeBorrowed1) == (Book title2 author2 pyear2 numOfPages2 canBeBorrowed2) =
+        title1 == title2 && author1 == author2 && pyear1 == pyear2 && numOfPages1 == numOfPages2
+
 -- main = print $ b1 == b1 -- True
 -- main = print $ b1 == b2 -- False
 
@@ -126,6 +142,9 @@ if they have the same title, author, publishing year and pages.
 3.2 Create an instance of '<' for the type Book. A book is smaller than
 another if the publishing year is smaller than the second book's publishing year.
 -}
+
+instance Ord Book where
+    (Book _ _ pyear1 _ _) < (Book _ _ pyear2 _ _) = pyear1 < pyear2
 
 -- main = print $ b1 < b2 -- False
 -- main = print $ b3 < b2 -- True
@@ -136,10 +155,25 @@ eliminates redundancies and arranges them according to the publication year.
 The name of the new library is the concatenation of the 2 libraries' names.
 -}
 
--- main = print $ lib1 + lib1 
+-- sortBooks :: [Book] -> [Book]
+-- sortBooks = sortBy (\b1 b2 -> compare (pyear b1) (pyear b1))
+
+-- removeDubs :: [Book] -> [Book]
+-- removeDubs [] = []
+-- removeDubs (x:xs)
+--     | x `elem` xs = x : removeDubs (filter (/= x) xs)
+--     | otherwise = x : removeDubs xs
+
+-- instance Semigroup Library where
+--     (Library name1 books1) <> (Library name2 books2) = Library { libName = name1 ++ name2, books = sortBooks (removeDubs (books1 ++ books2)) }
+
+-- (+) :: Library -> Library -> Library
+-- (+) = (<>)
+
+-- main = print $ lib1 + lib1
 -- (Library "lib1lib1" {(Book "Functional Programming" "Andrey" 1999 1250 True),
 --                      (Book "C Programming Language" "Abel" 2022 1501 False)})
--- main = print $ lib1 + lib2 
+-- main = print $ lib1 <> lib2
 -- (Library "lib1lib2" {(Book "Java Programming Language" "John" 1508 2980 True),
 --                      (Book "Functional Programming" "Andrey" 1999 1250 True),
 --                      (Book "C Programming Language" "Abel" 2022 1501 False)})
@@ -148,6 +182,15 @@ The name of the new library is the concatenation of the 2 libraries' names.
 3.4 Write '==' operator for 'Library' data type.
 Two libraries are equal if they have 'exactly' the same books.
 -}
+
+equalB :: [Book] -> [Book] -> Bool
+equalB [] _ = True
+equalB (x:xs) ys
+    | x `elem` ys = equalB xs ys
+    | otherwise = False
+
+instance Eq Library where
+    (Library _ books1) == (Library _ books2) = equalB books1 books2
 
 -- main = print $ lib1 == lib1 -- True
 -- main = print $ lib3 == lib6 -- False
@@ -305,6 +348,7 @@ ada :: EngagedPerson
 ada = EngagedPerson { fullName = "Ada Kennedy", yearOfMarriage = 2000 }
 
 -- getOldestMarriage :: [(EngagedPerson, EngagedPerson)] -> String
+-- getOldestMarriage 
 
 -- main = print $ getOldestMarriage [(leon, ada), (mike, edna)] -- "Kennedy"
 -- main = print $ getOldestMarriage [(leon, ada), (homer, marge)] -- "Simpson"
@@ -321,6 +365,18 @@ ada = EngagedPerson { fullName = "Ada Kennedy", yearOfMarriage = 2000 }
 -}
 
 data Color = Red | Orange | Yellow | Green | Blue | Indigo | Violet deriving (Show)
+
+neighbours :: [Color] -> [Color]
+neighbours = map neighbor
+    where
+        neighbor :: Color -> Color
+        neighbor Red = Yellow
+        neighbor Orange = Green
+        neighbor Yellow = Blue
+        neighbor Green = Indigo
+        neighbor Blue = Violet
+        neighbor Indigo = Red
+        neighbor Violet = Orange
 
 -- main = print $ neighbours [Red, Orange, Yellow, Green, Blue, Indigo, Violet] -- [Yellow,Green,Blue,Indigo,Violet,Red,Orange]
 -- main = print $ neighbours [Blue] -- [Violet]

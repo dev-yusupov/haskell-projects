@@ -121,7 +121,7 @@ count str = filter filterChars (Map.toList (countCharsHelper str Map.empty))
 * Ex.: [1,2,3,4,5] - [2,4] = [1,3,5]
 -}
 
-instance Num [Int]where
+instance Num [Int] where
   (*) :: [Int] -> [Int] -> [Int]
   a * b = [x * y | x <- a | y <- b]
 

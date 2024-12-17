@@ -5,18 +5,22 @@ import Data.Time.Clock.TAI (taiClock)
 -- McCarthy is a renowned computer science theorist who defined a 
 -- recursive function called f91. It takes a positive integer N as input 
 -- and returns a positive integer following these rules:
- 
+
 -- If N is less than or equal to 100, then f91(N) equals f91(f91(N + 11)).
 -- If N is greater than or equal to 101, then f91(N) equals N - 10.
 -- Write a program to compute McCarthy's function f91 value.
 -- If the input number is less than 1, abort with "Stop".
 
--- f91 :: Int -> Int
+f91 :: Int -> Int
+f91 n
+    | n < 1 = error "Stop"
+    | n > 100 = n - 10
+    | otherwise = f91 (f91 (n + 11))
 
---main= print(f91 500) --490
---main= print(f91 91) --91
---main= print(f91 0) --Stop
---main= print(f91 100) --Stop
+-- main= print(f91 500) --490
+-- main= print(f91 91) --91
+-- main= print(f91 0) --Stop
+-- main= print(f91 100) --Stop
 
 -- 2. Count steps
 -- Write a recursive function to count the minimum number of steps 
@@ -24,7 +28,12 @@ import Data.Time.Clock.TAI (taiClock)
 -- Allowed steps are: subtract 1, divide by 2 (if divisible), 
 -- or divide by 3 (if divisible).
 
--- countStepsToOne :: Int -> Int
+countStepsToOne :: Int -> Int
+countStepsToOne 1 = 0
+countStepsToOne n
+    | even n = 1 + countStepsToOne (n `div` 2)
+    | n `mod` 3 == 0 = 1 + countStepsToOne (n `div` 3)
+    | otherwise = 1 + countStepsToOne (n - 1)
 
 -- main = print(countStepsToOne 1)  -- 0
 -- main = print(countStepsToOne 2)  -- 1
@@ -39,7 +48,14 @@ import Data.Time.Clock.TAI (taiClock)
 -- If it is present, return its index. If not, return -1.
 -- (you can assume that the number is present only once)
 
--- position :: [Int] -> Int -> Int
+helperP :: [Int] -> Int -> Int -> Int
+helperP [] _ _ = -1
+helperP (x:xs) n ind
+    | x == n = ind
+    | otherwise = helperP xs n (ind + 1)
+
+position :: [Int] -> Int -> Int
+position xs n = helperP xs n 0
 
 -- main = print(position [1, 2, 3, 4, 5] 3)         -- 2
 -- main = print(position [8, 5, 3, 6] 3)            -- 2
@@ -69,7 +85,8 @@ import Data.Time.Clock.TAI (taiClock)
 -- and applies the function to all elements
 -- of the lists and returns the new list with output.
 
--- apply :: (a -> a -> a) -> [a] -> [a] -> [a]
+apply :: (a -> a -> a) -> [a] -> [a] -> [a]
+apply func xs ys = [func x y | x <- xs | y <- ys]
 
 -- Test functions
 summ :: Int -> Int -> Int
@@ -97,7 +114,15 @@ joinn x y = x ++ y
 -- are (1,6), (2,5), (3,4). 
 -- Return them as a list so final output is [[(1,6),(2,5),(3,4)]
 
--- findPairSums :: [Int] -> [Int] -> Int -> [(Int, Int)]
+pairSums :: Int -> [Int] -> Int -> [(Int, Int)]
+pairSums _ [] _ = []
+pairSums x (y:ys) target
+    | x + y == target = (x, y) : pairSums x ys target
+    | otherwise = pairSums x ys target
+
+findPairSums :: [Int] -> [Int] -> Int -> [(Int, Int)]
+findPairSums [] _ _ = []
+findPairSums (x:xs) ys target = pairSums x ys target ++ findPairSums xs ys target
 
 -- main = print(findPairSums [1,2,3] [4,5,6] 7)       -- [(1,6),(2,5),(3,4)]
 -- main = print(findPairSums [6, -2, 3] [5, 2, 7] 5)  -- [(-2, 7),(3, 2)]

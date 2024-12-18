@@ -137,10 +137,20 @@ findPairSums (x:xs) ys target = pairSums x ys target ++ findPairSums xs ys targe
 -- 'b' 6 [('a', 5), ('b', 18), ('c', 7)] --> the value of b must be updated to 6 
 -- == [('a', 5), ('b', 6), ('c', 7)]
 
--- update :: Char -> Int -> [(Char, Int)] -> [(Char, Int)]
+update :: Char -> Int -> [(Char, Int)] -> [(Char, Int)]
+update key value [] = [(key, value)]
+update key value ((k, v):xs)
+    | key == k = (k, value) : xs
+    | otherwise = update key value xs
 
--- main = print(update 'b' 6 [('a', 5), ('b', 18), ('c', 7)]) -- [('a',5),('b',6),('c',7)]
--- main = print(update 'b' 6 [])                             -- [('b',6)]
+updateL :: Char -> Int -> [(Char, Int)] -> [(Char, Int)]
+updateL key value xs =
+    let update = foldr (\(k, v) acc -> if k == key then (k, value) : acc else (k, v) : acc) [] xs
+    in if null update then [(key, value)] else update
+
+-- main = do
+--     print(updateL 'b' 6 [('a', 5), ('b', 18), ('c', 7)]) -- [('a',5),('b',6),('c',7)]
+--     print(updateL 'b' 6 [])                             -- [('b',6)]
 
 -- 8. Append 
 -- Write a function that takes a list of characters and creates 
@@ -151,10 +161,15 @@ findPairSums (x:xs) ys target = pairSums x ys target ++ findPairSums xs ys targe
 -- ['a','b','c','d'] becomes "ac" + "bd" -> "acbd"
 -- ['d','o','m','i','n','o'] becomes "dmn" + "oio" -> "dmnoio"
 
--- fa :: [Char] -> String
+helperFa :: (Int -> Bool) -> [Char] -> [Char]
+helperFa func xs = [x | (x, i) <- zip xs [0..], func i]
 
--- main = print(fa ['a','b','c','d'])       -- "acbd"
--- main = print(fa ['d','o','m','i','n','o']) -- "dmnoio"
+fa :: [Char] -> String
+fa xs = helperFa even xs  ++ helperFa odd xs
+
+-- main = do
+--     print(fa ['a','b','c','d'])       -- "acbd"
+--     print(fa ['d','o','m','i','n','o']) -- "dmnoio"
 
 -- 9. Game
 -- In a football game, players typically play for 90 minutes unless they 
@@ -170,12 +185,14 @@ findPairSums (x:xs) ys target = pairSums x ys target ++ findPairSums xs ys targe
 -- [("Player1", False, 129), ("Player2", True, 60), ("Player3", False, -99), ("Player4", True, 75) ]
 -- Returns : 90 + 60 + 90 + 75 = 315
 
--- playTime :: [(String, Bool, Int)] -> Int
+playTime :: [(String, Bool, Int)] -> Int
+playTime = foldl (\acc (_, sub, minutes) -> if sub then minutes + acc else 90 + acc) 0
 
 -- main = print(playTime [])  -- 0
--- main = print(playTime [("a", False, -1),("b", False, 0),("c", False, 0),("d", False, 12)]) -- 360
--- main = print(playTime [("a", True, 85),("b", True, 5),("c", True, 23),("d", True, 12)])   -- 125
--- main = print(playTime [("Player1", False, 129), ("Player2", True, 60), ("Player3", False, -99), ("Player4", True, 75)]) -- 315
+-- main = do
+--     print(playTime [("a", False, -1),("b", False, 0),("c", False, 0),("d", False, 12)]) -- 360
+--     print(playTime [("a", True, 85),("b", True, 5),("c", True, 23),("d", True, 12)])   -- 125
+--     print(playTime [("Player1", False, 129), ("Player2", True, 60), ("Player3", False, -99), ("Player4", True, 75)]) -- 315
 
 -- 10. Scramble
 -- Define a function scramble that takes a list and puts all the 
@@ -184,11 +201,16 @@ findPairSums (x:xs) ys target = pairSums x ys target ++ findPairSums xs ys targe
 
 -- scramble [0..10] == [0,2,4,6,8,10,1,3,5,7,9] 
 
--- scramble :: [a] -> [a]
+helperS :: (Int -> Bool) -> [a] -> [a]
+helperS func xs = [x | (x, i) <- zip xs [0..], func i]
 
--- main = print(scramble [0,1,2])              -- [0,2,1]
--- main = print(scramble [0..10])              -- [0,2,4,6,8,10,1,3,5,7,9]
--- main = print(scramble "Functional Programming") -- "FntoalPormigucining"
+scramble :: [a] -> [a]
+scramble xs = helperS even xs ++ helperS odd xs
+
+-- main = do
+--     print(scramble [0,1,2])              -- [0,2,1]
+--     print(scramble [0..10])              -- [0,2,4,6,8,10,1,3,5,7,9]
+--     print(scramble "Functional Programming") -- "FntoalPormigucining"
 
 
 -- 11. Differences average
@@ -204,7 +226,12 @@ findPairSums (x:xs) ys target = pairSums x ys target ++ findPairSums xs ys targe
 -- Output: 3.666
 -- Explanation ((7-3)+(12-7)+(13-12))/3 = 3.6667
 
--- averageDifference :: [Int] -> Double
+averageDifference :: [Int] -> Double
+averageDifference xs =
+    let difference = map (\(x, y) -> y - x) (zip xs (tail xs))
+        total = fromIntegral (sum difference)
+        count = fromIntegral (length difference)
+    in total / count
 
 -- main = print(averageDifference [14, 16, 20, 34, 59, 71]) -- 11.4
 -- main = print(averageDifference [18, 22, 24, 40, 76, 82]) -- 12.8
@@ -217,9 +244,17 @@ findPairSums (x:xs) ys target = pairSums x ys target ++ findPairSums xs ys targe
 -- If the list has an even number of elements, use -1 as the mid element.
 -- If the list is empty, use -1 for first, mid, and last.
 
--- startMidEnd :: [[Int]] -> [(Int, Int, Int)]
+getMid :: [Int] -> Int
+getMid xs =
+    let leng = length xs
+    in if even leng || leng == 0 then -1
+       else xs !! (leng `div` 2)
 
--- main = print(startMidEnd [[9,8,5,0],[9,8,5,3,4],[1,2,3]]) -- [(9,-1,0),(9,5,4),(1,2,3)]
+startMidEnd :: [[Int]] -> [(Int, Int, Int)]
+startMidEnd [] = []
+startMidEnd xs = map (\ x -> (if null x then -1 else head x, getMid x, if null x then -1 else last x)) xs
+
+-- main = print (startMidEnd [[9,8,5,0],[9,8,5,3,4],[1,2,3]]) -- [(9,-1,0),(9,5,4),(1,2,3)]
 -- main = print(startMidEnd [[2,3],[5],[]]) -- [(2,-1,3),(5,5,5),(-1,-1,-1)]
 -- main = print(startMidEnd []) -- []
--- main = print(startMidEnd [[-1,-1,-1],[]]) -- [(-1,-1,-1),(-1,-1,-1)]
+main = print(startMidEnd [[-1,-1,-1],[]]) -- [(-1,-1,-1),(-1,-1,-1)]

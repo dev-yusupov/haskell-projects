@@ -64,8 +64,15 @@ prefixes xs = prefixes withoutLast ++ [xs]
   where
     withoutLast = generateWithoutLast xs
 
--- main = print (prefixes [1, 2, 3])      -- Output: [[1], [1, 2], [1, 2, 3]]
--- main = print (prefixes "abc")          -- Output: [["a"], ["a", "b"], ["a", "b", "c"]]
+prefixes1 :: [a] -> [[a]]
+prefixes1 [] = []
+prefixes1 xs = prefixes1 (init xs) ++ [xs]
+
+prefixes2 :: [a] -> [[a]]
+prefixes2 xs = tail $ scanl (\acc x -> acc ++ [x]) [] xs
+
+-- main = print (prefixes2 [1, 2, 3])      -- Output: [[1], [1, 2], [1, 2, 3]]
+-- main = print (prefixes2 "abc")          -- Output: [["a"], ["a", "b"], ["a", "b", "c"]]
 -- main = print (prefixes [42, 43])       -- Output: [[42], [42, 43]]
 -- main = print (prefixes [5])            -- Output: [[5]]
 
@@ -82,13 +89,13 @@ prefixes xs = prefixes withoutLast ++ [xs]
 -- = (2-1)^2 + (3-2)^2 + (5-4)^2 + (6-5)^2= 4
 
 sumTwo :: [Int] -> [Int] -> Int
-sumTwo xs ys = sum (zipWith (\x y -> (y-x)^2) ys xs) 
+sumTwo xs ys = sum (zipWith (\x y -> (y-x)^2) ys xs)
 
 -- main = print (sumTwo [1, 2] [3, 4])
 
 ssd :: [[Int]] -> [[Int]] -> Int
 ssd [] [] = 0
-ssd (x:xs) (y:ys) = (sumTwo x y) + (ssd xs ys)
+ssd (x:xs) (y:ys) = sumTwo x y + ssd xs ys
 
 
 -- main = print (ssd [[1, 2], [4, 5]] [[2, 3], [5, 6]]) -- 4
@@ -110,7 +117,7 @@ tupToList (x:xs) = [sumTup x] ++ tupToList xs
 
 sumPairs :: [(Int, Int)] -> Int
 sumPairs [] = 0
-sumPairs ys = sum (tupToList ys)
+sumPairs xs = sum $ foldl (\acc (a, b) -> (a + b) : acc) [] xs
 
 -- main = print (sumPairs [(1, 2), (3, 4), (5, 6)]) -- 21
 -- main = print (sumPairs [(7, 8)]) -- 15
@@ -143,7 +150,13 @@ indexSums as bs = (a, b)
     a = sumOdd as
     b = sumEven bs
 
--- main = print (indexSums [1, 2, 3, 4] [5, 6, 7, 8]) -- (6,12)
+sumInd :: (Int -> Bool) -> [(Int, Int)] -> Int
+sumInd func xs = sum $ [x | (x, i) <- xs, func i]
+
+indexSums1 :: [Int] -> [Int] -> (Int, Int)
+indexSums1 as bs = (sumInd odd (zip as [0..]), sumInd even (zip bs [0..]))
+
+-- main = print (indexSums1 [1, 2, 3, 4] [5, 6, 7, 8]) -- (6,12)
 -- main = print (indexSums [3,5,6,7,8] [9,7,4,2,5]) -- (12,18)
 
 
@@ -154,11 +167,13 @@ indexSums as bs = (a, b)
 -- same as (b, a) and should only appear once.
 -- The order of the output does not matter if it is correct.
 
---divisiblePairs :: [Int] -> [(Int, Int)]
+divisiblePairs :: [Int] -> [(Int, Int)]
+divisiblePairs [] = []
+divisiblePairs (x:xs) = [(x, y) | y <- xs, x `mod` y == 0 || y `mod` x == 0] ++ divisiblePairs xs
 
---main = print (divisiblePairs [2, 3, 4, 6])       -- Output: [(4,2),(6,2),(6,3)]
---main = print (divisiblePairs [10, 5, 2, 1])      -- Output: [(10,5),(10,2),(10,1),(5,1),(2,1)]
---main = print (divisiblePairs [12, 3, 4, 6])      -- Output: [(12,3),(12,4),(12,6),(6,3)]
+-- main = print (divisiblePairs [2, 3, 4, 6])       -- Output: [(4,2),(6,2),(6,3)]
+-- main = print (divisiblePairs [10, 5, 2, 1])      -- Output: [(10,5),(10,2),(10,1),(5,1),(2,1)]
+-- main = print (divisiblePairs [12, 3, 4, 6])      -- Output: [(12,3),(12,4),(12,6),(6,3)]
 
 
 -- 8. --------------------------------
@@ -180,11 +195,15 @@ countNegativePositivePairs (x:y:xs)
   | (x < 0 && y > 0) = 1 + countNegativePositivePairs xs
   | otherwise = countNegativePositivePairs (y:xs)
 
+countNegativePositivePairs1 :: [Int] -> Int
+countNegativePositivePairs1 [] = 0
+countNegativePositivePairs1 xs = foldr (\(x, y) total -> if x < 0 then total + 1 else total) 0 (zip xs (tail xs))
+
 -- main = print (countNegativePositivePairs [])                               -- 0
 -- main = print (countNegativePositivePairs [-1, 2, -3, -4, 5, 6, -7, 8, -9]) -- 3
 -- main = print (countNegativePositivePairs [1, -2, 3, -4, -5, 6])            -- 2
 -- main = print (countNegativePositivePairs [-1, -2, -3, -4])                -- 0
---main = print (countNegativePositivePairs [10, -5, -6, -7, -8, 9])         -- 1
+-- main = print (countNegativePositivePairs [10, -5, -6, -7, -8, 9])         -- 1
 
 
 -- 9. --------------------------------
@@ -207,11 +226,14 @@ getTaxRate "electronics" = 0.15   -- 15% tax on electronics
 getTaxRate "clothing" = 0.10      -- 10% tax on clothing
 getTaxRate _ = 0.08               -- Default 8% tax for other categories
 
---canAfford :: [(Int, String)] -> Int -> Bool
+canAfford :: [(Int, String)] -> Int -> Bool
+canAfford xs avsum = totalsum < fromIntegral avsum
+  where
+    totalsum = foldr (\(price, category) total -> total + fromIntegral price * (1 + getTaxRate category)) 0 xs
 
---main = print (canAfford [(100, "food"), (200, "electronics"), (50, "clothing")] 400)  -- True
+-- main = print (canAfford [(100, "food"), (200, "electronics"), (50, "clothing")] 400)  -- True
 -- 100 * 1.05 + 200 * 1.15 + 50 * 1.10 = 105 + 230 + 55 = 390 < 400
---main = print (canAfford [(100, "food"), (200, "electronics"), (50, "clothing")] 300)  -- False
+-- main = print (canAfford [(100, "food"), (200, "electronics"), (50, "clothing")] 300)  -- False
 -- 100 * 1.05 + 200 * 1.15 + 50 * 1.10 = 105 + 230 + 55 = 390 > 300
 --main = print (canAfford [(100, "food"), (80, "clothing")] 200)  -- True
 -- 100 * 1.05 + 80 * 1.10 = 105 + 88 = 193 < 200
@@ -227,11 +249,11 @@ getTaxRate _ = 0.08               -- Default 8% tax for other categories
 divisors :: Int -> [Int]
 divisors a = [x | x <- [1..(a-1)], (a `mod` x) == 0]
 
-isPerfect :: Int -> Bool
-isPerfect b = sum (divisors b) == b
+-- isPerfect :: Int -> Bool
+-- isPerfect b = sum (divisors b) == b
 
 perfectNumbers :: Int -> [Int]
-perfectNumbers n = [x | x <- [1..n], (sum (divisors x)) == x]
+perfectNumbers n = [x | x <- [1..n], sum (divisors x) == x]
 
 -- main = print(perfectNumbers 30) -- [6, 28]
 -- main = print(perfectNumbers 500) -- [6, 28, 496]
@@ -250,16 +272,24 @@ perfectNumbers n = [x | x <- [1..n], (sum (divisors x)) == x]
 --  [] turns into 0, which does not equal n
 -- returns 1 as only one changed list has the same sum as 9
 
---cntSums :: [[Int]] -> Int -> Int
+selectList :: (Int -> Int -> Int) -> [Int] -> Int
+selectList _ [] = 0
+selectList func xs = foldr func (head xs) xs
 
---main = print (cntSums [[1,4,2,6], [8,4,2,4], [2,4,2], []] 9) -- 1
---main = print (cntSums [[], [3,2,1], [4,6]] 0) -- 1
---main = print (cntSums [] 0) -- 0
+cntSums :: [[Int]] -> Int -> Int
+cntSums [] _ = 0
+cntSums xs n = length [x | x <- generatedLst, sum x == n]
+  where
+    generatedLst = map (\ x -> [(selectList min x) .. (selectList max x)]) xs
+
+-- main = print (cntSums [[1,4,2,6], [8,4,2,4], [2,4,2], []] 9) -- 1
+-- main = print (cntSums [[], [3,2,1], [4,6]] 0) -- 1
+main = print (cntSums [] 0) -- 0
 
 
 -- 12. --------------------------------
 -- Every bird in the library has a Letter code (Char). See the `birdsName` function:
-birdsName :: Char -> String 
+birdsName :: Char -> String
 birdsName 'B' = "Bluebird"
 birdsName 'C' = "Cardinal"
 birdsName 'S' = "Starling"

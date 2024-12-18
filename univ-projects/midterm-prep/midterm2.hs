@@ -1,17 +1,32 @@
+import Data.List (permutations)
 -- Problem 1: Implement a function `myGroup` that takes a list and groups consecutive duplicates into sublists.
 -- Example:
 -- myGroup [1, 1, 2, 3, 3, 3, 4, 4] == [[1, 1], [2], [3, 3, 3], [4, 4]]
+myGroup :: [Int] -> [[Int]]
+myGroup [] = []
+myGroup (x:xs) = (x : takeWhile (==x) xs) : myGroup (dropWhile (==x) xs)
+
+main = do
+    print(myGroup [1, 1, 2, 3, 3, 3, 4, 4]) -- [[1,1],[2],[3,3,3],[4,4]]
 
 -- Problem 2: Write a function `subsequencesOfLength` that returns all subsequences of a list with a given length.
 -- Example:
 -- subsequencesOfLength 2 [1, 2, 3] == [[1, 2], [1, 3], [2, 3]]
 
+-- subsequencesOfLength :: Int -> [Int] -> [[Int]]
+-- subsequencesOfLength l xs = map
+
 -- Problem 3: Create a function `isBinarySearchTree` that checks if a given binary tree is a valid binary search tree.
 -- The binary tree can be represented as:
--- data Tree a = Empty | Node a (Tree a) (Tree a)
+
+data Tree a = Empty | Node a (Tree a) (Tree a)
 -- Example:
 -- isBinarySearchTree (Node 2 (Node 1 Empty Empty) (Node 3 Empty Empty)) == True
 -- isBinarySearchTree (Node 2 (Node 3 Empty Empty) (Node 1 Empty Empty)) == False
+
+-- isBinarySearchTree :: Tree a -> Bool
+-- isBinarySearchTree Empty = True
+
 
 -- Problem 4: Define a function `kthPermutation` that generates the k-th permutation of a given list.
 -- The k-th permutation is based on lexicographical ordering.

@@ -104,7 +104,12 @@ followedByEven (x:y:xs) nr
   | x == nr && even y = 1 + followedByEven (y:xs) nr
   | otherwise = followedByEven (y:xs) nr
 
--- main = print (followedByEven [3, 4, 5, 2, 3, 5, 3, 8] 3) -- 2
+followedByEven1 :: [Int] -> Int -> Int
+followedByEven1 xs number = length $ filter isEvenFollowing $ zip xs (tail xs)
+  where
+    isEvenFollowing (x, y) = x == number && even y
+
+-- main = print (followedByEven1 [3, 4, 5, 2, 3, 5, 3, 8] 3) -- 2
 -- main = print (followedByEven [1,6,3,6,6,4,9] 6) -- 2
 -- main = print (followedByEven [1,2,5,3,4,5,7,5] 5) -- 0
 
